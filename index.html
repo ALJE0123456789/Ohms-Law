@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Ohm’s Law Simulator (Hidden Wire Resistance)</title>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 20px; }
+  h1, h2 { margin: 0 0 10px; }
+  .panel { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .card { border: 1px solid #ccc; border-radius: 10px; padding: 16px; }
+  label { display: block; margin-top: 10px; font-weight: 600; }
+  input[type="range"] { width: 100%; }
+  .switch { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+  .meters { display: flex; gap: 20px; align-items: center; }
+  .meter { border: 2px solid #333; border-radius: 50%; width: 120px; height: 120px;
+           display: flex; align-items: center; justify-content: center; flex-direction: column; }
+  .meter h3 { margin: 0; font-size: 16px; }
+  .value { font-size: 22px; font-weight: 600; }
+  .tag { font-size: 12px; color: #555; }
+  .note { font-size: 12px; color: #666; }
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+  th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+  button { margin-top: 10px; padding: 8px 12px; }
+</style>
+</head>
+<body>
+
+<h1>Ohm’s Law Simulator (Hidden Wire Resistance)</h1>
+<p class="note">Battery → Key → Ammeter → Rheostat → Resistance wire (hidden value). Voltmeter is across the wire.</p>
+
+<div class="panel">
+  <!-- Controls -->
+  <div class="card">
+    <h2>Controls</h2>
+
+    <label>Battery (V): <span id="VsLabel">10.0 V</span></label>
+    <input id="Vs" type="range" min="0" max="24" step="0.5" value="10" />
+
+    <label>Rheostat R<sub>rheo</sub> (Ω): <span id="RrheoLabel">20 Ω</span></label>
+    <input id="Rrheo" type="range" min="1" max="200" step="1" value="20" />
+
+    <div class="switch">
+      <input id="key" type="checkbox" checked />
+      <label for="key">Key (switch) closed</label>
+    </div>
+
+    <button id="addRow">Add reading</button>
+    <button id="clearTable">Clear table</button>
+  </div>
+
+  <!-- Meters -->
+  <div class="card">
+    <h2>Meters</h2>
+    <div class="meters">
+      <div class="meter">
+        <h3>Ammeter</h3>
+        <div class="value" id="ammeter">0.000 A</div>
+        <div class="tag">Series</div>
+      </div>
+      <div class="meter">
+        <h3>Voltmeter</h3>
+        <div class="value" id="voltmeter">0.00 V</div>
+        <div class="tag">Across wire (parallel)</div>
+      </div>
+    </div>
+    <p class="note">Calculate R = V/I to discover the hidden wire resistance.</p>
+  </div>
+</div>
+
+<!-- Observation table -->
+<div class="card">
+  <h2>Observation table</h2>
+  <table id="table">
+    <thead>
+      <tr>
+        <th>Battery Vs (V)</th>
+        <th>Rheostat Rrheo (Ω)</th>
+        <th>Ammeter I (A)</th>
+        <th>Voltmeter V_wire (V)</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<script>
+  // Hidden random wire resistance (10–50 Ω)
+  const Rwire = Math.floor(Math.random() * 41) + 10;
+
+  const Vs = document.getElementById('Vs');
+  const Rrheo = document.getElementById('Rrheo');
+  const key = document.getElementById('key');
+
+  const VsLabel = document.getElementById('VsLabel');
+  const RrheoLabel = document.getElementById('RrheoLabel');
+
+  const ammeter = document.getElementById('ammeter');
+  const voltmeter = document.getElementById('voltmeter');
+
+  const tableBody = document.querySelector('#table tbody');
+
+  function compute() {
+    const V = parseFloat(Vs.value);
+    const R1 = parseFloat(Rrheo.value);
+
+    VsLabel.textContent = V.toFixed(1) + ' V';
+    RrheoLabel.textContent = R1.toFixed(0) + ' Ω';
+
+    let I = 0, Vwire = 0;
+    if (key.checked) {
+      const Rtot = R1 + Rwire;
+      I = Rtot > 0 ? V / Rtot : 0;
+      Vwire = I * Rwire;
+    }
+    ammeter.textContent = I.toFixed(3) + ' A';
+    voltmeter.textContent = Vwire.toFixed(2) + ' V';
+  }
+
+  function addRow() {
+    const V = parseFloat(Vs.value);
+    const R1 = parseFloat(Rrheo.value);
+    const closed = key.checked;
+
+    const I = closed ? (V / (R1 + Rwire)) : 0;
+    const Vwire = closed ? (I * Rwire) : 0;
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${V.toFixed(1)}</td>
+      <td>${R1.toFixed(0)}</td>
+      <td>${I.toFixed(3)}</td>
+      <td>${Vwire.toFixed(2)}</td>
+    `;
+    tableBody.appendChild(tr);
+  }
+
+  function clearTable() { tableBody.innerHTML = ''; }
+
+  Vs.addEventListener('input', compute);
+  Rrheo.addEventListener('input', compute);
+  key.addEventListener('change', compute);
+  document.getElementById('addRow').addEventListener('click', addRow);
+  document.getElementById('clearTable').addEventListener('click', clearTable);
+
+  compute();
+</script>
+</body>
+</html>
