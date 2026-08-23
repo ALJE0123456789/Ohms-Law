@@ -1,0 +1,20 @@
+{
+  "name": "ohms-law",
+  "version": "1.0.0",
+  "description": "Ohm's Law Simulator for Education Purpose",
+  "type": "module",
+  "scripts": {
+    "dev": "npx http-server -p 3000",
+    "build": "echo 'Static site - no build step required'"
+  },
+  "keywords": [
+    "ohms-law",
+    "physics",
+    "education"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@vercel/analytics": "^1.4.1"
+  }
+}
